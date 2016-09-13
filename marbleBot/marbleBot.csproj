@@ -161,7 +161,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\TwitchBot\TwitchBot.csproj">
+      <Project>{259e431c-e781-48c7-9680-c2049fcabf21}</Project>
+      <Name>TwitchBot</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="marbleracing.ico" />
   </ItemGroup>
@@ -170,12 +175,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Entypo-license.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="C:\Users\Micah\dev\MaskOfTruth\MOTSharp\TwitchBot\TwitchBot.csproj">
-      <Project>{259e431c-e781-48c7-9680-c2049fcabf21}</Project>
-      <Name>TwitchBot</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "marbleBot", "marbleBot\marbleBot.csproj", "{1B670932-B8A9-4983-84DC-B2A67D151799}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchBot", "C:\Users\Micah\dev\MaskOfTruth\MOTSharp\TwitchBot\TwitchBot.csproj", "{259E431C-E781-48C7-9680-C2049FCABF21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchBot", "TwitchBot\TwitchBot.csproj", "{259E431C-E781-48C7-9680-C2049FCABF21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
