@@ -6,12 +6,22 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Globalization;
 
 namespace marbleBot.ViewModels
 {
 	public class BotViewModel : Utils.ViewModel
 	{
 		#region Static
+		static BotViewModel()
+		{
+			PropertiesInUpdateList();
+		}
+
 		public static List<string> PropertiesInUpdateList()
 		{
 			if (propertyUpdates != null)
@@ -34,77 +44,95 @@ namespace marbleBot.ViewModels
 
 		#region Instance
 
-		public BotViewModel()
-		{
-			PropertiesInUpdateList();
-
-
-			bot = new Models.Bot();
-						
-
-			twitchMessages = new System.Collections.ObjectModel.ObservableCollection<string>();
-			(bot.bot.EH.operators.Find((a) => a.Item1 is Models.BotCommands.WPFPrettyPrint).Item1 as Models.BotCommands.WPFPrettyPrint).twitchChat = twitchMessages;
-			
-			BindingOperations.EnableCollectionSynchronization(twitchMessages, twitchMessageLock);
-			BindingOperations.EnableCollectionSynchronization(ranks, rankLock);
-
-			tick.Interval = TimeSpan.FromSeconds(1);
-
-			tick.Tick += (a, b) =>
-			{
-				foreach (var name in propertyUpdates)
-				{
-					UpdateProperty(name);
-				}
-			};
-
-			tick.Start();
-
-			Models.BotCommands.GetRank.NewRank callback = cmd =>
-			{
-				if (cmd.username.ToLower() == bot.cred.nickname.ToLower())
-				{
-					myRank = cmd;
-				}
-
-				if (cmd.position >= ranks.Count)
-				{
-					ranks.Add(cmd);
-				}
-				else {
-					ranks[cmd.position - 1] = cmd;
-					
-				}
-
-				UpdateProperty(nameof(nextRank));
-
-			};
-
-			Models.BotCommands.TopTen.OnNewRank += callback;
-			Models.BotCommands.GetRank.OnNewRank += callback;
-		}
-
-
-		public void SetRank(string pos, string total, string points)
-		{
-			currentRank = String.Format("{0} / {1} - {2}", pos, total, points);
-		}
-
 		Models.Bot bot;
 
 		DispatcherTimer tick = new DispatcherTimer();
 
+		public BotViewModel()
+		{
+			bot = new Models.Bot();
+
+			dynamic configNickPass = new { nick = "", pass = "" };
+			try
+			{
+				configNickPass = ConfigLoader.LoadConfig("userInfo.json");
+			}
+			catch (System.IO.FileNotFoundException)
+			{
+				ConfigLoader.SaveConfig("userInfo.json", configNickPass);
+			}
+			credNick = configNickPass.nick;
+			credPass = configNickPass.pass;
+
+			// Bind twitchchat collection to operator
+			twitchMessages = new System.Collections.ObjectModel.ObservableCollection<string>();
+			(bot.bot.EH.operators.Find((a) => a.Item1 is Models.BotCommands.WPFPrettyPrint).Item1 as Models.BotCommands.WPFPrettyPrint).twitchChat = twitchMessages;
+			
+			// Multithread collections
+			BindingOperations.EnableCollectionSynchronization(twitchMessages, twitchMessageLock);
+			//BindingOperations.EnableCollectionSynchronization(ranks, rankLock);
+
+			// Bind property updates to timer
+			tick.Interval = TimeSpan.FromSeconds(1);
+			tick.Tick += propertyTick;
+			tick.Start();
+
+			// TODO: Improve rank
+			// Dictionary of username to point value? 
+
+			// Bind update rank commands
+			Models.BotCommands.TopTen.OnNewRank += UpdateRankCallback;
+			Models.BotCommands.GetRank.OnNewRank += UpdateRankCallback;
+		}
+
+		private void propertyTick(object sender, EventArgs e)
+		{
+			foreach (var name in propertyUpdates)
+			{
+				UpdateProperty(name);
+			}
+		}
+
+		private void UpdateRankCallback(Models.Rank rank)
+		{
+			if (rank.username.ToLower() == bot.cred.nickname.ToLower())
+			{
+				myRank = rank;
+			}
+
+			((IDictionary<string,Models.Rank>)rankLookup)[rank.username.ToLower()] = rank;
+			//UpdateProperty(nameof(ranksSorted));
+			//if (rank.position >= ranks.Count)
+			//{
+			//	ranks.Add(rank);
+			//}
+			//else
+			//{
+			//	ranks[rank.position - 1] = rank;
+
+			//}
+
+			UpdateProperty(nameof(nextRank));
+		}
 		#endregion
 		#region WPF Bindings
 
 		public object rankLock = new object();
-
-		public System.Collections.ObjectModel.ObservableCollection<Models.Rank> ranks
+		
+		public DictList<string, Models.Rank> rankLookup
 		{
 			get
 			{
-				return GetProperty() as System.Collections.ObjectModel.ObservableCollection<Models.Rank> ??
-					SetProperty(new System.Collections.ObjectModel.ObservableCollection<Models.Rank>());
+				return GetProperty() as DictList<string, Models.Rank> ?? SetProperty(new DictList<string, Models.Rank>());
+			}
+		}
+
+		public Dictionary<string, Models.Rank> rankDict
+		{
+			get
+			{
+				// CStyle cast should have less overhead
+				return (Dictionary < string, Models.Rank > )GetProperty()?? SetProperty(new Dictionary<string, Models.Rank>());
 			}
 		}
 
@@ -115,8 +143,11 @@ namespace marbleBot.ViewModels
 				ListCollectionView prop = GetProperty() as ListCollectionView;
 				if(prop == null)
 				{
-					prop = SetProperty(CollectionViewSource.GetDefaultView(ranks) as ListCollectionView);
+					var p = CollectionViewSource.GetDefaultView((IList<Models.Rank>)rankLookup) as ListCollectionView;
+					prop = SetProperty(p as ListCollectionView, false);
 					prop.CustomSort = new Models.Rank.RankSortPosition();
+					prop.IsLiveSorting = true;
+					
 				}
 				
 				return prop;
@@ -141,6 +172,7 @@ namespace marbleBot.ViewModels
 		{
 			get
 			{
+
 				if (!IsBotRunning)
 				{
 					return startBot;
@@ -190,6 +222,11 @@ namespace marbleBot.ViewModels
 								bot.StartBot(
 									new TwitchBot.Classes.Credentials(credNick, credPass)
 								);
+
+								if (!(string.IsNullOrWhiteSpace(credNick) && string.IsNullOrWhiteSpace(credPass)))
+								{
+									ConfigLoader.SaveConfig("userInfo.json", new { nick = credNick, pass = credPass });
+								}
 							},
 							(obj) => credNick != "" && credPass != "" && !IsBotRunning
 						)
@@ -208,7 +245,7 @@ namespace marbleBot.ViewModels
 						{
 							bot.StopBot();
 						},
-						obj => IsBotRunning
+							obj => IsBotRunning
 						)
 					);
 			}
@@ -225,7 +262,7 @@ namespace marbleBot.ViewModels
 							{
 								bot.bot.Join("marbleracing");
 							},
-							(obj) => !bot.bot.channels.Contains("marbleracing")
+								(obj) => !bot.bot.channels.Contains("marbleracing")
 						)
 					);
 			}
@@ -242,7 +279,7 @@ namespace marbleBot.ViewModels
 							{
 								bot.bot.PM("marbleracing", "!cheat");
 							},
-							(obj) => bot.bot.channels.Contains("marbleracing")
+								(obj) => bot.bot.channels.Contains("marbleracing")
 						)
 					);
 			}
@@ -259,7 +296,7 @@ namespace marbleBot.ViewModels
 							{
 								bot.bot.PM("marbleracing", "!rigged");
 							},
-							(obj) => bot.bot.channels.Contains("marbleracing")
+								(obj) => bot.bot.channels.Contains("marbleracing")
 						)
 					);
 			}
@@ -276,7 +313,23 @@ namespace marbleBot.ViewModels
 							{
 								bot.bot.PM("marbleracing", "!rank");
 							},
-							(obj) => bot.bot.channels.Contains("marbleracing")
+								(obj) => bot.bot.channels.Contains("marbleracing")
+						)
+					);
+			}
+		}
+
+		public Utils.ViewCommand arbCmd
+		{
+			get
+			{
+				return GetProperty() as Utils.ViewCommand ??
+					SetProperty<Utils.ViewCommand>(
+							new Utils.ViewCommand(param =>
+							{
+								bot.bot.PM("marbleracing", param as string);
+							},
+							param => bot.bot.channels.Contains("marbleracing")
 						)
 					);
 			}
@@ -363,7 +416,7 @@ namespace marbleBot.ViewModels
 		{
 			get
 			{
-				return Models.BotCommands.EnterRace.totalRaces;
+				return Models.BotCommands.EnterRace.TotalRaces;
 			}
 		}
 
@@ -409,11 +462,11 @@ namespace marbleBot.ViewModels
 		{
 			get
 			{
-				return Models.BotCommands.EnterRace.timeLow;
+				return Models.BotCommands.EnterRace.TimeLow;
 			}
 			set
 			{
-				Models.BotCommands.EnterRace.timeLow = value;
+				Models.BotCommands.EnterRace.TimeLow = value;
 				UpdateProperty();
 			}
 		}
@@ -422,11 +475,11 @@ namespace marbleBot.ViewModels
 		{
 			get
 			{
-				return Models.BotCommands.EnterRace.timeHigh;
+				return Models.BotCommands.EnterRace.TimeHigh;
 			}
 			set
 			{
-				Models.BotCommands.EnterRace.timeHigh = value;
+				Models.BotCommands.EnterRace.TimeHigh = value;
 				UpdateProperty();
 			}
 		}
@@ -441,7 +494,7 @@ namespace marbleBot.ViewModels
 
 		}
 
-		public string selectedColor
+		public int selectedColor
 		{
 			get
 			{
@@ -451,27 +504,6 @@ namespace marbleBot.ViewModels
 			{
 
 				Models.BotCommands.EnterRace.cSelect = value;
-				UpdateProperty(nameof(ballColor));
-			}
-		}
-
-		public Brush ballColor
-		{
-			get
-			{
-				var brush = GetProperty() as LinearGradientBrush;
-				if (brush == null)
-				{
-					brush = SetProperty(new LinearGradientBrush());
-					brush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString(selectedColor), 0.0));
-					brush.GradientStops.Add(new GradientStop(Color.FromArgb(1, 0, 0, 0), 1.0));
-				}
-				else
-				{
-					brush.GradientStops[0].Color = (Color)ColorConverter.ConvertFromString(selectedColor);
-				}
-
-				return brush;
 			}
 		}
 

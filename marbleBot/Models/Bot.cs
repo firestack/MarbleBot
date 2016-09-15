@@ -36,7 +36,7 @@ namespace marbleBot.Models
 			
 			botTask = Task.Run(() => bot.Start(this.cred));
 			
-			Console.WriteLine("Hello world!");
+			
 		}
 
 		public void StopBot()

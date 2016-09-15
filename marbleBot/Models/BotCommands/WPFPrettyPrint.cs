@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace marbleBot.Models.BotCommands
 {
-	[TwitchBot.Attributes.Command(accessLevel = TwitchBot.Message.EPermissions.TMI, respondsTo = TwitchBot.Message.ECommand.ALL)]
+	[TwitchBot.Attributes.Command(accessLevel = TwitchBot.Message.EPermissions.ALL, respondsTo = TwitchBot.Message.ECommand.ALL)]
 	class WPFPrettyPrint : TwitchBot.Classes.Plugin
 	{
+		[NonSerialized]
 		public System.Collections.ObjectModel.ObservableCollection<string> twitchChat = new System.Collections.ObjectModel.ObservableCollection<string>();
 
 		public override void Init()

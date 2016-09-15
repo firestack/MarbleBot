@@ -12,15 +12,9 @@ namespace marbleBot.Models.BotCommands
 	{
 		//public static HashSet<string> marbleColors = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "blue", "green" };
 
-		public static List<string> marbleList = new List<string> { "darkred", "darkblue", "orange", "gold", "red", "limegreen", "flesh", "blue", "pink", "brown", "white", "black", "purple", "green", "neonpink", "yellow", "lightpurple", "teal", "lightgreen" };
+		public static List<string> marbleList = cfg.ProgramConfig.conf.colorOptions;
 
-		public static string cSelect = "";
-
-		public static int totalRaces = 0;
-
-		public static double timeHigh = 2.0f;
-
-		public static double timeLow = 1.0f;
+		public static int cSelect = -2;
 
 		public static double timeSelection = 0.0f;
 
@@ -28,45 +22,81 @@ namespace marbleBot.Models.BotCommands
 
 		Random rng = new Random();
 
+		public static int TotalRaces
+		{
+			get
+			{
+				return cfg.ProgramConfig.conf.totalRaces;
+			}
+
+			set
+			{
+				cfg.ProgramConfig.conf.totalRaces = value;
+			}
+		}
+
+		public static double TimeHigh
+		{
+			get
+			{
+				return cfg.ProgramConfig.conf.timeHigh;
+			}
+
+			set
+			{
+				cfg.ProgramConfig.conf.timeHigh = value;
+			}
+		}
+
+		public static double TimeLow
+		{
+			get
+			{
+				return cfg.ProgramConfig.conf.timeLow;
+			}
+
+			set
+			{
+				cfg.ProgramConfig.conf.timeLow = value;
+			}
+		}
+
 		public override void Init()
 		{
-			marbleList.Sort();
-			marbleList.Insert(0, "Random");
-			marbleList.Insert(1, "Random No Color");
 			base.Init();
 
-			//UpdateMarbleList();
 
-			//tick.Interval =
 			tick.AutoReset = false;
-			tick.Elapsed += (a, b) => {
+			tick.Elapsed += EnterMarble;
 
-				//var color = (cSelect == "Human Random"? marbleList[rng.Next(0, marbleList.Count)] : cSelect);
-				var color = "";
-				if(cSelect == "Random")
-				{
+		}
+
+		private void EnterMarble(object sender, System.Timers.ElapsedEventArgs e)
+		{
+			var color = "";
+			switch (cSelect - 2)
+			{
+				case -2:
 					color = marbleList[rng.Next(0, marbleList.Count)];
-				}
-				else if(cSelect == "Random No Color")
-				{
+					break;
+
+				case -1:
 					color = "";
-				}
-				else
-				{
-					color = cSelect;
-				}
+					break;
 
-				bot.PM(message.channel, "!marble " + color);
-				totalRaces += 1;
-			};
+				default:
+					var pos = Math.Max(Math.Abs(cSelect), marbleList.Count - 1) + 2;
+					color = pos >= marbleList.Count ? "" : marbleList[pos];
+					break;
+			}
 
+			bot.PM(message.channel, "!marble " + color);
+			TotalRaces += 1;
 		}
 
 		public override void Invoke()
 		{
-			//bot.PM(message.channel, "!marble " + marbleColor);
-
-			tick.Interval = timeSelection = TimeSpan.FromSeconds(rng.NextDouble() * (timeHigh - timeLow) + timeLow).TotalMilliseconds;
+			tick.Interval = timeSelection = TimeSpan.FromSeconds(rng.NextDouble() * (TimeHigh - TimeLow) + TimeLow).TotalMilliseconds;
 			tick.Start();
 		}
 

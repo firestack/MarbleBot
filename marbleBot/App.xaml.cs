@@ -8,10 +8,17 @@ using System.Windows;
 
 namespace marbleBot
 {
+	// TODO: Implement Colors on chat
+	// TODO: Custom Command buttons 
+
 	/// <summary>
 	/// Interaction logic for App.xaml
 	/// </summary>
 	public partial class App : Application
 	{
+		private void Application_Exit(object sender, ExitEventArgs e)
+		{
+			cfg.ProgramConfig.conf.Save();
+		}
 	}
 }

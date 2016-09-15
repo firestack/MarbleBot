@@ -14,21 +14,23 @@ namespace marbleBot.ViewModels.Utils
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(Name));
 		}
 
-		public void UpdateEverything()
+		protected void UpdateProperty(params string[] names)
 		{
-			foreach (var kv in propertyValues)
+			foreach (var name in names)
 			{
-				UpdateProperty(kv.Key);
+				UpdateProperty(name);
 			}
 		}
 
-
 		protected Dictionary<string, object> propertyValues = new Dictionary<string, object>();
 
-		protected T SetProperty<T>(T value, [CallerMemberName] string property = null)
+		protected T SetProperty<T>(T value, bool updateProperty = true, [CallerMemberName] string property = null)
 		{
 			this.propertyValues[property] = value;
-			UpdateProperty(property);
+			if(updateProperty)
+			{
+				UpdateProperty(property);
+			}
 			return value;
 		}
 

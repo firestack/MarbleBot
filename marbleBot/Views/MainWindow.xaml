@@ -146,7 +146,7 @@
 								<TextBlock>Selected Color</TextBlock>
 							</Span>
 						</Label>
-						<ComboBox SelectedValue="{Binding selectedColor, Source={StaticResource botvm}}" ItemsSource="{Binding marbleColor, Source={StaticResource botvm}}" SelectedIndex="0" >
+						<ComboBox ItemsSource="{Binding marbleColor, Source={StaticResource botvm}}" SelectedIndex="{Binding selectedColor, Source={StaticResource botvm}}" >
 							<ComboBox.ItemsPanel>
 								<ItemsPanelTemplate>
 									<VirtualizingStackPanel IsItemsHost="True" VirtualizationMode="Recycling"/>
@@ -174,8 +174,8 @@
 							<ListView.View>
 								<GridView>
 									<GridViewColumn Header="Place" DisplayMemberBinding="{Binding position}" />
-									<GridViewColumn Header="Name" DisplayMemberBinding="{Binding username}" />
 									<GridViewColumn Header="Points" DisplayMemberBinding="{Binding points}"/>
+									<GridViewColumn Header="Name" DisplayMemberBinding="{Binding username}" />
 								</GridView>
 							</ListView.View>
 						</ListView>

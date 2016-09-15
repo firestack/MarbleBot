@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace marbleBot.Models.BotCommands
 {
-	[TwitchBot.Attributes.Command(accessLevel = TwitchBot.Message.EPermissions.USER, respondsTo = TwitchBot.Message.ECommand.PRIVMSG, prefix = '!', suffix = "")]
+	[TwitchBot.Attributes.Command(accessLevel = TwitchBot.Message.EPermissions.ALL, respondsTo = TwitchBot.Message.ECommand.PRIVMSG, prefix = '!', suffix = "")]
 	class LogCommands : TwitchBot.Classes.Plugin
 	{
 		public static object _lock = new object();

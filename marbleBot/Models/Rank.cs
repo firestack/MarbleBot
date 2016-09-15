@@ -14,7 +14,7 @@ namespace marbleBot.Models
 		public int total { get { return totalStatic; } set { totalStatic = value; } }
 		public static int totalStatic { get; set; }
 
-		public class RankSortPosition : System.Collections.IComparer
+		public class RankSortPosition : System.Collections.IComparer, IComparer<Rank>
 		{
 			public int Compare(object x, object y)
 			{
@@ -27,7 +27,7 @@ namespace marbleBot.Models
 			}
 		}
 
-		public class RankSortPoints : System.Collections.IComparer
+		public class RankSortPoints : System.Collections.IComparer, IComparer<Rank>
 		{
 			public int Compare(object x, object y)
 			{

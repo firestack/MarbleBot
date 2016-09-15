@@ -17,11 +17,14 @@ namespace marbleBot.ViewModels.Utils
 			canExecute = CanExecute;
 		}
 
-		public event EventHandler CanExecuteChanged
+		public void ReEval()
 		{
-			add { CommandManager.RequerySuggested += value; }
-			remove { CommandManager.RequerySuggested -= value; }
+			CanExecuteChanged(this, EventArgs.Empty);
 		}
+
+#pragma warning disable 67 // "Is Never used" callback method that other things bind to
+		public event EventHandler CanExecuteChanged;
+#pragma warning restore 67
 
 		public virtual bool CanExecute(object parameter)
 		{
