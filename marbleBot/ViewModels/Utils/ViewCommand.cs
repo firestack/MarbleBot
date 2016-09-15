@@ -19,7 +19,7 @@ namespace marbleBot.ViewModels.Utils
 
 		public void ReEval()
 		{
-			CanExecuteChanged(this, EventArgs.Empty);
+			CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 		}
 
 #pragma warning disable 67 // "Is Never used" callback method that other things bind to

@@ -209,13 +209,13 @@ namespace marbleBot.ViewModels
 			}
 		}
 
-		//[ManualUpdate]
+		[ManualUpdate]
 		public Utils.ViewCommand startBot
 		{
 			get
 			{
 				return GetProperty() as Utils.ViewCommand ??
-					SetProperty<Utils.ViewCommand>(
+					SetProperty(
 						new Utils.ViewCommand(
 							(obj) =>
 							{
@@ -223,14 +223,22 @@ namespace marbleBot.ViewModels
 									new TwitchBot.Classes.Credentials(credNick, credPass)
 								);
 
-								if (!(string.IsNullOrWhiteSpace(credNick) && string.IsNullOrWhiteSpace(credPass)))
+								if (isCredVaild)
 								{
 									ConfigLoader.SaveConfig("userInfo.json", new { nick = credNick, pass = credPass });
 								}
 							},
-							(obj) => credNick != "" && credPass != "" && !IsBotRunning
+							(obj) =>  isCredVaild && !IsBotRunning
 						)
 					);
+			}
+		}
+
+		public bool isCredVaild
+		{
+			get
+			{
+				return (!string.IsNullOrWhiteSpace(credNick) && !string.IsNullOrWhiteSpace(credPass));
 			}
 		}
 
@@ -240,7 +248,7 @@ namespace marbleBot.ViewModels
 			get
 			{
 				return GetProperty() as Utils.ViewCommand ??
-					SetProperty<Utils.ViewCommand>(
+					SetProperty(
 						new Utils.ViewCommand((obj) =>
 						{
 							bot.StopBot();
@@ -257,7 +265,7 @@ namespace marbleBot.ViewModels
 			get
 			{
 				return GetProperty() as Utils.ViewCommand ??
-					SetProperty<Utils.ViewCommand>(
+					SetProperty(
 							new Utils.ViewCommand((obj) =>
 							{
 								bot.bot.Join("marbleracing");
@@ -274,7 +282,7 @@ namespace marbleBot.ViewModels
 			get
 			{
 				return GetProperty() as Utils.ViewCommand ??
-					SetProperty<Utils.ViewCommand>(
+					SetProperty(
 							new Utils.ViewCommand((obj) =>
 							{
 								bot.bot.PM("marbleracing", "!cheat");
@@ -291,7 +299,7 @@ namespace marbleBot.ViewModels
 			get
 			{
 				return GetProperty() as Utils.ViewCommand ??
-					SetProperty<Utils.ViewCommand>(
+					SetProperty(
 							new Utils.ViewCommand((obj) =>
 							{
 								bot.bot.PM("marbleracing", "!rigged");
@@ -308,7 +316,7 @@ namespace marbleBot.ViewModels
 			get
 			{
 				return GetProperty() as Utils.ViewCommand ??
-					SetProperty<Utils.ViewCommand>(
+					SetProperty(
 							new Utils.ViewCommand((obj) =>
 							{
 								bot.bot.PM("marbleracing", "!rank");
@@ -324,12 +332,11 @@ namespace marbleBot.ViewModels
 			get
 			{
 				return GetProperty() as Utils.ViewCommand ??
-					SetProperty<Utils.ViewCommand>(
+					SetProperty(
 							new Utils.ViewCommand(param =>
 							{
-								bot.bot.PM("marbleracing", param as string);
-							},
-							param => bot.bot.channels.Contains("marbleracing")
+								bot.bot.PM("bomb_mask", param as string);
+							}
 						)
 					);
 			}
@@ -343,7 +350,7 @@ namespace marbleBot.ViewModels
 			}
 			set
 			{
-				SetProperty(value); UpdateProperty(nameof(startStopBot)); UpdateProperty(nameof(startBot));
+				SetProperty(value); UpdateProperty(nameof(startStopBot)); startBot.ReEval();
 			}
 		}
 
@@ -355,7 +362,7 @@ namespace marbleBot.ViewModels
 			}
 			set
 			{
-				SetProperty(value); UpdateProperty(nameof(startStopBot)); UpdateProperty(nameof(startBot));
+				SetProperty(value); UpdateProperty(nameof(startStopBot)); startBot.ReEval();
 			}
 		}
 

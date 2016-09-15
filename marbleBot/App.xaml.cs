@@ -10,6 +10,8 @@ namespace marbleBot
 {
 	// TODO: Implement Colors on chat
 	// TODO: Custom Command buttons 
+	// TODO: Commands Popover/Flyover -> Join Lobby, nightbot commands
+	// TODO: Settings Flyover
 
 	/// <summary>
 	/// Interaction logic for App.xaml

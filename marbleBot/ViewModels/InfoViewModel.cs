@@ -16,5 +16,13 @@ namespace marbleBot.ViewModels
 				return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 			}
 		}
+
+		public IEnumerable<string> extraCommands
+		{
+			get
+			{
+				return cfg.ProgramConfig.conf.commands;
+			}
+		}
 	}
 }
